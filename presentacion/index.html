@@ -1152,7 +1152,7 @@ x-connector { display: block; }
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
-      <a id="influx-external-link" href="https://disabled-amy-shell-numerous.trycloudflare.com" target="_blank" style="font-family:'Space Mono', monospace;font-size:20px;font-weight:700;text-decoration:none;color:#141414;background:#7BE3B5;border:2px solid #141414;border-radius:999px;padding:4px 16px">↗ Abrir InfluxDB</a>
+      <a id="influx-external-link" href="https://describe-markers-salon-oliver.trycloudflare.com/orgs/ec2138bcd1bd8f25/data-explorer" target="_blank" style="font-family:'Space Mono', monospace;font-size:20px;font-weight:700;text-decoration:none;color:#141414;background:#7BE3B5;border:2px solid #141414;border-radius:999px;padding:4px 16px">↗ Abrir InfluxDB</a>
       <button class="infra-full-btn" data-target="influx-slot" style="font-family:'Space Mono', monospace;font-size:20px;font-weight:700;background:#FFFFFF;border:2px solid #141414;border-radius:999px;padding:4px 16px;cursor:pointer">⤢ Pantalla completa</button>
     </div>
   </div>
@@ -1175,7 +1175,7 @@ x-connector { display: block; }
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
-      <a id="nr-external-link" href="https://modification-spend-conversion-handmade.trycloudflare.com" target="_blank" style="font-family:'Space Mono', monospace;font-size:20px;font-weight:700;text-decoration:none;color:#141414;background:#FFF0B8;border:2px solid #141414;border-radius:999px;padding:4px 16px">↗ Abrir Node-RED</a>
+      <a id="nr-external-link" href="https://softball-payday-characters-phone.trycloudflare.com" target="_blank" style="font-family:'Space Mono', monospace;font-size:20px;font-weight:700;text-decoration:none;color:#141414;background:#FFF0B8;border:2px solid #141414;border-radius:999px;padding:4px 16px">↗ Abrir Node-RED</a>
       <button class="infra-full-btn" data-target="nr-slot" style="font-family:'Space Mono', monospace;font-size:20px;font-weight:700;background:#FFFFFF;border:2px solid #141414;border-radius:999px;padding:4px 16px;cursor:pointer">⤢ Pantalla completa</button>
     </div>
   </div>
@@ -1806,26 +1806,55 @@ const Transiciones = (function () {
       estado.style.color = '#C21F12';
     }
 
-    async function probarSalud(targetUrl) {
-      if (!targetUrl) return false;
-      try {
-        const ctl = new AbortController();
-        const t = setTimeout(() => ctl.abort(), 3500);
-        await fetch(`${targetUrl}/api/health`, { mode: 'no-cors', cache: 'no-store', signal: ctl.signal });
-        clearTimeout(t);
-        return true;
-      } catch (e) {
-        return false;
-      }
+    function probarSalud(targetUrl) {
+      if (!targetUrl) return Promise.resolve(false);
+      return new Promise((resolve) => {
+        let terminado = false;
+        const imgProbe = new Image();
+        const t = setTimeout(() => {
+          if (!terminado) {
+            terminado = true;
+            imgProbe.src = '';
+            resolve(false);
+          }
+        }, 3500);
+        imgProbe.onload = () => {
+          if (!terminado) {
+            terminado = true;
+            clearTimeout(t);
+            resolve(true);
+          }
+        };
+        imgProbe.onerror = () => {
+          if (!terminado) {
+            terminado = true;
+            clearTimeout(t);
+            resolve(false);
+          }
+        };
+        const u = targetUrl.replace(/\/$/, '');
+        imgProbe.src = `${u}/public/img/grafana_icon.svg?_t=${Date.now()}`;
+      });
     }
 
     function comprobar() {
       estado.textContent = 'comprobando…'; estado.style.color = '#4A4A55';
       cfgLista.then(async () => {
-        if (paramBase || leer()) {
+        if (paramBase) {
           const ok = await probarSalud(base);
           if (ok) mostrarVivo(); else mostrarCaptura();
           return;
+        }
+
+        const saved = leer();
+        if (saved) {
+          const ok = await probarSalud(saved);
+          if (ok) {
+            base = saved;
+            mostrarVivo();
+            return;
+          }
+          guardar(null);
         }
 
         if (esLocal) {
@@ -1893,8 +1922,8 @@ const Transiciones = (function () {
     const esLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
     let cfg = {
-      influx: 'https://disabled-amy-shell-numerous.trycloudflare.com',
-      nodered: 'https://modification-spend-conversion-handmade.trycloudflare.com'
+      influx: 'https://describe-markers-salon-oliver.trycloudflare.com',
+      nodered: 'https://softball-payday-characters-phone.trycloudflare.com'
     };
 
     function resolverUrl(tipo, fallbackLocal) {
@@ -1905,12 +1934,13 @@ const Transiciones = (function () {
     }
 
     function inicializarFrames() {
-      const uInflux = resolverUrl('influx', 'http://localhost:8085');
-      const uNodered = resolverUrl('nodered', 'http://localhost:1880');
+      const uInflux = resolverUrl('influx', 'http://localhost:8085').replace(/\/+$/, '');
+      const uNodered = resolverUrl('nodered', 'http://localhost:1880').replace(/\/+$/, '');
+      const uInfluxExplorer = `${uInflux}/orgs/ec2138bcd1bd8f25/data-explorer`;
       if (influxFrame && (!influxFrame.src || !influxFrame.src.includes(uInflux))) {
-        influxFrame.src = uInflux;
+        influxFrame.src = uInfluxExplorer;
       }
-      if (influxLink) influxLink.href = uInflux;
+      if (influxLink) influxLink.href = uInfluxExplorer;
       if (nrFrame && (!nrFrame.src || !nrFrame.src.includes(uNodered))) {
         nrFrame.src = uNodered;
       }
@@ -2007,7 +2037,7 @@ const Transiciones = (function () {
     // Configuración de URL base del endpoint backend (Local-First con fallback a túnel)
     const params = new URLSearchParams(location.search);
     const esLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    const CLOUDFLARE_CHATBOT_TUNNEL = 'https://const-tasks-llc-cooling.trycloudflare.com';
+    const CLOUDFLARE_CHATBOT_TUNNEL = 'https://geological-collectibles-speech-cyber.trycloudflare.com';
     let apiBase = (params.get('chatbot') || (esLocal ? 'http://localhost:8000' : CLOUDFLARE_CHATBOT_TUNNEL)).replace(/\/$/, '');
     let conectado = false;
     let historial = [];
